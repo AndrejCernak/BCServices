@@ -18,16 +18,26 @@ def _check_admin():
 @frappe.whitelist(allow_guest=True)
 def list_all_users():
     _check_admin()
+
     users = frappe.get_all(
         "Friday User",
-        fields=[
-            "name as id",
-            "user_id as username",
-            "role",
-            "creation"
-        ]
+        fields=["name as id", "user_id as username", "role", "creation"]
     )
-    return {"success": True, "clients": users}
+
+    clients = []
+    for u in users:
+        clients.append({
+            "id": u.id,
+            "username": u.username,
+            "devices": [],  # môžeš neskôr doplniť reálne zariadenia
+            "tokens": []    # zatiaľ prázdne, aby JSON matchol Swift model
+        })
+
+    return {
+        "success": True,
+        "clients": clients
+    }
+
 
 
 # -------------------------------------------------------------
