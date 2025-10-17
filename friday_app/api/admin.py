@@ -33,11 +33,10 @@ def list_all_users():
             "tokens": []
         })
 
-    # 🔹 dôležité: vrátiť ako dict, nie cez frappe.local.response
-    return {
-        "success": True,
-        "clients": clients
-    }
+    # 🟢 TOTO je správny spôsob, ako poslať JSON priamo
+    frappe.response["success"] = True
+    frappe.response["clients"] = clients
+    return
 
 
 
