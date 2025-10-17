@@ -6,8 +6,9 @@ from frappe import _
 # -------------------------------------------------------------
 
 def _check_admin():
-    """Helper na kontrolu, či request robí administrátor."""
-    if frappe.session.user != "Administrator":
+    """Helper na kontrolu, či request robí administrátor alebo oprávnený Clerk admin."""
+    allowed_admins = ["Administrator", "user_30p94nuw9O2UHOEsXmDhV2SgP8N"]  # 👈 tvoj Clerk admin ID
+    if frappe.session.user not in allowed_admins:
         frappe.throw(_("Not permitted"), frappe.PermissionError)
 
 
@@ -17,8 +18,16 @@ def _check_admin():
 @frappe.whitelist(allow_guest=True)
 def list_all_users():
     _check_admin()
-    users = frappe.get_all("Friday User", fields=["name", "user_id", "role", "creation"])
-    return {"users": users}
+    users = frappe.get_all(
+        "Friday User",
+        fields=[
+            "name as id",
+            "user_id as username",
+            "role",
+            "creation"
+        ]
+    )
+    return {"success": True, "clients": users}
 
 
 # -------------------------------------------------------------
@@ -45,7 +54,7 @@ def list_payments():
         fields=["name", "buyer", "amount_eur", "status", "created_at"],
         order_by="created_at desc"
     )
-    return {"payments": payments}
+    return {"success": True, "payments": payments}
 
 
 # -------------------------------------------------------------
@@ -59,7 +68,7 @@ def list_transactions():
         fields=["name", "user", "type", "amount_eur", "seconds_delta", "created_at"],
         order_by="created_at desc"
     )
-    return {"transactions": transactions}
+    return {"success": True, "transactions": transactions}
 
 
 # -------------------------------------------------------------
@@ -75,7 +84,7 @@ def mint_tokens(year: int, quantity: int, price_eur: float):
             "original_price_eur": price_eur
         }).insert(ignore_permissions=True)
     frappe.db.commit()
-    return {"message": f"Minted {quantity} tokens for year {year}"}
+    return {"success": True, "message": f"Minted {quantity} tokens for year {year}"}
 
 
 # -------------------------------------------------------------
@@ -88,7 +97,7 @@ def set_current_price(price_eur: float):
     settings.current_price_eur = price_eur
     settings.save(ignore_permissions=True)
     frappe.db.commit()
-    return {"message": f"Price updated to {price_eur} €"}
+    return {"success": True, "message": f"Price updated to {price_eur} €"}
 
 
 # -------------------------------------------------------------
