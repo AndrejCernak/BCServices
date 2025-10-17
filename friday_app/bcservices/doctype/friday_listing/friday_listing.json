@@ -1,0 +1,77 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-10-12 19:46:26.803393",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "token",
+  "seller",
+  "price_eur",
+  "status",
+  "closed_at",
+  "created_at"
+ ],
+ "fields": [
+  {
+   "fieldname": "token",
+   "fieldtype": "Link",
+   "label": "token",
+   "options": "Friday Token"
+  },
+  {
+   "fieldname": "seller",
+   "fieldtype": "Link",
+   "label": "seller",
+   "options": "Friday User"
+  },
+  {
+   "fieldname": "price_eur",
+   "fieldtype": "Currency",
+   "label": "price_eur"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "status",
+   "options": "open\nsold\ncancelled"
+  },
+  {
+   "fieldname": "closed_at",
+   "fieldtype": "Datetime",
+   "label": "closed_at"
+  },
+  {
+   "fieldname": "created_at",
+   "fieldtype": "Datetime",
+   "label": "created_at"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-10-12 20:38:46.462317",
+ "modified_by": "Administrator",
+ "module": "BCServices",
+ "name": "Friday Listing",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

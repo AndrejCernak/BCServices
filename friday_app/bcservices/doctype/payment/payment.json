@@ -1,0 +1,106 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-10-12 19:50:45.987067",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "buyer",
+  "listing",
+  "type",
+  "quantity",
+  "year",
+  "amount_eur",
+  "application_fee_eur",
+  "stripe_session_id",
+  "stripe_payment_intent",
+  "status",
+  "created_at"
+ ],
+ "fields": [
+  {
+   "fieldname": "buyer",
+   "fieldtype": "Link",
+   "label": "buyer",
+   "options": "Friday User"
+  },
+  {
+   "fieldname": "listing",
+   "fieldtype": "Link",
+   "label": "listing",
+   "options": "Friday Listing"
+  },
+  {
+   "fieldname": "type",
+   "fieldtype": "Data",
+   "label": "type"
+  },
+  {
+   "fieldname": "quantity",
+   "fieldtype": "Int",
+   "label": "quantity"
+  },
+  {
+   "fieldname": "year",
+   "fieldtype": "Int",
+   "label": "year"
+  },
+  {
+   "fieldname": "amount_eur",
+   "fieldtype": "Currency",
+   "label": "amount_eur"
+  },
+  {
+   "fieldname": "application_fee_eur",
+   "fieldtype": "Currency",
+   "label": "application_fee_eur"
+  },
+  {
+   "fieldname": "stripe_session_id",
+   "fieldtype": "Data",
+   "label": "stripe_session_id"
+  },
+  {
+   "fieldname": "stripe_payment_intent",
+   "fieldtype": "Data",
+   "label": "stripe_payment_intent"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Data",
+   "label": "status"
+  },
+  {
+   "fieldname": "created_at",
+   "fieldtype": "Datetime",
+   "label": "created_at"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-10-12 20:38:47.360023",
+ "modified_by": "Administrator",
+ "module": "BCServices",
+ "name": "Payment",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

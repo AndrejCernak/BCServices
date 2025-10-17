@@ -1,0 +1,84 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-10-12 19:47:25.029837",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "listing",
+  "token",
+  "seller",
+  "buyer",
+  "price_eur",
+  "platform_fee_eur",
+  "created_at"
+ ],
+ "fields": [
+  {
+   "fieldname": "listing",
+   "fieldtype": "Link",
+   "label": "listing",
+   "options": "Friday Listing"
+  },
+  {
+   "fieldname": "token",
+   "fieldtype": "Link",
+   "label": "token",
+   "options": "Friday Token"
+  },
+  {
+   "fieldname": "seller",
+   "fieldtype": "Link",
+   "label": "seller",
+   "options": "Friday User"
+  },
+  {
+   "fieldname": "buyer",
+   "fieldtype": "Link",
+   "label": "buyer",
+   "options": "Friday User"
+  },
+  {
+   "fieldname": "price_eur",
+   "fieldtype": "Currency",
+   "label": "price_eur"
+  },
+  {
+   "fieldname": "platform_fee_eur",
+   "fieldtype": "Currency",
+   "label": "platform_fee_eur"
+  },
+  {
+   "fieldname": "created_at",
+   "fieldtype": "Datetime",
+   "label": "created_at"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-10-12 20:38:46.688126",
+ "modified_by": "Administrator",
+ "module": "BCServices",
+ "name": "Friday Trade",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

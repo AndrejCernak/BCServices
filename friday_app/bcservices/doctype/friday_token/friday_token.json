@@ -1,0 +1,82 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-10-12 19:43:03.070579",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "issued_year",
+  "minutes_remaining",
+  "status",
+  "original_price_eur",
+  "owner_user",
+  "created_at",
+  "updated_at"
+ ],
+ "fields": [
+  {
+   "fieldname": "issued_year",
+   "fieldtype": "Int",
+   "label": "issued_year"
+  },
+  {
+   "fieldname": "minutes_remaining",
+   "fieldtype": "Int",
+   "label": "minutes_remaining"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "status",
+   "options": "active\nlisted\nspent"
+  },
+  {
+   "fieldname": "original_price_eur",
+   "fieldtype": "Currency",
+   "label": "original_price_eur"
+  },
+  {
+   "fieldname": "owner_user",
+   "fieldtype": "Link",
+   "label": "owner_user",
+   "options": "Friday User"
+  },
+  {
+   "fieldname": "created_at",
+   "fieldtype": "Datetime",
+   "label": "created_at"
+  },
+  {
+   "fieldname": "updated_at",
+   "fieldtype": "Datetime",
+   "label": "updated_at"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-10-12 20:38:46.190669",
+ "modified_by": "Administrator",
+ "module": "BCServices",
+ "name": "Friday Token",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}
