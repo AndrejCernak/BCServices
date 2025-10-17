@@ -27,18 +27,18 @@ def list_all_users():
     clients = []
     for u in users:
         clients.append({
-            "id": u.clerk_id or u.email,   # iOS očakáva 'id'
+            "id": u.clerk_id or u.email,
             "username": u.username or f"{u.first_name} {u.last_name}".strip(),
-            "devices": [],  # neskôr sa doplní z Friday Device
-            "tokens": []    # neskôr sa doplní z Friday Token
+            "devices": [],
+            "tokens": []
         })
 
-    frappe.local.response["type"] = "json"
-    frappe.local.response["response"] = {
+    # 🔹 dôležité: vrátiť ako dict, nie cez frappe.local.response
+    return {
         "success": True,
         "clients": clients
     }
-    return
+
 
 
 # -------------------------------------------------------------
