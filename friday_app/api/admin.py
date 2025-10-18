@@ -1,12 +1,48 @@
 import frappe
+import jwt
+import requests
 from frappe import _
 
-# -------------------------------------------------------------
-# 🧑‍💼 ADMIN API ENDPOINTS
-# -------------------------------------------------------------
+# Clerk public key endpoint (nahrad podľa tvojho Clerk projectu)
+CLERK_JWKS_URL = "https://notable-sawfly-17.clerk.accounts.dev/.well-known/jwks.json"
+
+# Clerk admin user ID (z tvojej iOS appky)
+CLERK_ADMIN_ID = "user_30p94nuw9O2UHOEsXmDhV2SgP8N"
 
 def _check_admin():
-    """Helper na kontrolu, či request robí administrátor."""
+    """Overí, či request prichádza od admina – buď cez Clerk JWT alebo cez Frappe Administrator."""
+    auth_header = frappe.get_request_header("Authorization")
+
+    # 🔹 1. Pokus o overenie Clerk JWT tokenu
+    if auth_header and auth_header.startswith("Bearer "):
+        token = auth_header.split(" ")[1]
+
+        try:
+            # ✅ Clerk overenie cez JWKS (public key)
+            jwks = requests.get(CLERK_JWKS_URL).json()
+            header = jwt.get_unverified_header(token)
+            key = next(
+                (k for k in jwks["keys"] if k["kid"] == header["kid"]),
+                None
+            )
+
+            if not key:
+                frappe.throw(_("Invalid Clerk key"), frappe.PermissionError)
+
+            public_key = jwt.algorithms.RSAAlgorithm.from_jwk(key)
+            payload = jwt.decode(token, public_key, algorithms=["RS256"], audience=None)
+
+            # 🧠 Skontroluj Clerk user ID
+            if payload.get("sub") == CLERK_ADMIN_ID:
+                # Admin potvrdený ✅
+                return
+            else:
+                frappe.throw(_("You are not an admin (Clerk ID mismatch)"), frappe.PermissionError)
+
+        except Exception as e:
+            frappe.throw(_(f"JWT verification failed: {str(e)}"), frappe.PermissionError)
+
+    # 🔹 2. Ak nie je Authorization header, fallback na Frappe login
     if frappe.session.user != "Administrator":
         frappe.throw(_("Not permitted"), frappe.PermissionError)
 
