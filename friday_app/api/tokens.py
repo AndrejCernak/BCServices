@@ -101,6 +101,28 @@ def create_token(user_id: str, issued_year: int):
     }
 
 
+@frappe.whitelist(allow_guest=True)
+def get_balance(user_id: str):
+    """Vráti zostatok minút a tokeny používateľa."""
+    if not user_id:
+        frappe.throw(_("Missing user_id"))
+
+    tokens = frappe.get_all(
+        "Friday Token",
+        filters={"owner_user": user_id},
+        fields=["name as id", "issued_year", "minutes_remaining", "status"],
+        order_by="creation desc"
+    )
+
+    total_minutes = sum(t["minutes_remaining"] for t in tokens)
+
+    frappe.response["success"] = True
+    frappe.response["user_id"] = user_id
+    frappe.response["total_minutes"] = total_minutes
+    frappe.response["tokens"] = tokens
+    return
+
+
 # --------------------------------------------
 # 🧾 GET TOKENS
 # --------------------------------------------
