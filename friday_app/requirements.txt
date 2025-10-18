@@ -1,4 +1,0 @@
-frappe
-httpx
-PyJWT
-pytz
