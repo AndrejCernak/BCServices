@@ -35,7 +35,12 @@ def _check_admin():
                 frappe.throw(_("Invalid Clerk key"), frappe.PermissionError)
 
             public_key = jwt.algorithms.RSAAlgorithm.from_jwk(key)
-            payload = jwt.decode(token, public_key, algorithms=["RS256"], audience=None)
+			payload = jwt.decode(
+			    token,
+			    public_key,
+			    algorithms=["RS256"],
+			    options={"verify_aud": False}
+			)
 
             # 🧠 Logni payload pre kontrolu
             logger.debug(f"JWT payload received: {payload}")
