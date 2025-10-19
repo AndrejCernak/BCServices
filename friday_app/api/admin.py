@@ -35,17 +35,19 @@ def _check_admin():
                 frappe.throw(_("Invalid Clerk key"), frappe.PermissionError)
 
             public_key = jwt.algorithms.RSAAlgorithm.from_jwk(key)
-			payload = jwt.decode(
-			    token,
-			    public_key,
-			    algorithms=["RS256"],
-			    options={"verify_aud": False}
-			)
 
-            # 🧠 Logni payload pre kontrolu
-            logger.debug(f"JWT payload received: {payload}")
+            # ⚙️ Dôležité: vypneme kontrolu audience, inak vzniká AuthenticationError
+            payload = jwt.decode(
+                token,
+                public_key,
+                algorithms=["RS256"],
+                options={"verify_aud": False}
+            )
 
-            # 🔹 Over Clerk ID
+            # 🧠 Log pre kontrolu
+            logger.debug(f"✅ JWT payload received: {payload}")
+
+            # 🔹 Over Clerk ID (sub claim)
             if payload.get("sub") == CLERK_ADMIN_ID:
                 logger.info(f"✅ Admin access confirmed for Clerk ID: {payload.get('sub')}")
                 return
@@ -53,14 +55,21 @@ def _check_admin():
                 logger.warning(f"❌ Clerk ID mismatch: {payload.get('sub')} vs expected {CLERK_ADMIN_ID}")
                 frappe.throw(_("You are not an admin (Clerk ID mismatch)"), frappe.PermissionError)
 
+        except jwt.ExpiredSignatureError:
+            logger.error("❌ JWT token has expired")
+            frappe.throw(_("JWT token has expired"), frappe.PermissionError)
+        except jwt.InvalidSignatureError:
+            logger.error("❌ Invalid JWT signature")
+            frappe.throw(_("Invalid JWT signature"), frappe.PermissionError)
         except Exception as e:
-            logger.error(f"JWT verification failed: {str(e)}")
+            logger.error(f"❌ JWT verification failed: {str(e)}")
             frappe.throw(_(f"JWT verification failed: {str(e)}"), frappe.PermissionError)
 
     # 🔹 Ak nie je Authorization header, fallback na Frappe login
     if frappe.session.user != "Administrator":
         logger.warning(f"❌ Permission denied — current user: {frappe.session.user}")
         frappe.throw(_("Not permitted"), frappe.PermissionError)
+
 
 
 # -------------------------------------------------------------
