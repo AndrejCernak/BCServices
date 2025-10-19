@@ -62,8 +62,11 @@ def _check_admin():
             logger.error("❌ Invalid JWT signature")
             frappe.throw(_("Invalid JWT signature"), frappe.PermissionError)
         except Exception as e:
-            logger.error(f"❌ JWT verification failed: {str(e)}")
-            frappe.throw(_(f"JWT verification failed: {str(e)}"), frappe.PermissionError)
+            error_msg = f"JWT verification failed: {str(e)}"
+            logger.error(f"❌ {error_msg}")
+            frappe.log_error(title="JWT Verification Error", message=error_msg)
+            frappe.throw(_(error_msg), frappe.PermissionError)
+
 
     # 🔹 Ak nie je Authorization header, fallback na Frappe login
     if frappe.session.user != "Administrator":
