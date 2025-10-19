@@ -2,3 +2,4 @@ frappe
 httpx==0.27.0
 PyJWT
 pytz
+apns2
