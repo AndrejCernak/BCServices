@@ -4,6 +4,35 @@ from .auth import verify_bearer_and_get_user_id
 from .apns_push import send_incoming_call_push
 
 # ---------- Supply & Balance ----------
+@frappe.whitelist()
+def admin_clients():
+    """Vráti zoznam všetkých klientov pre admina"""
+    users = frappe.get_all(
+        "Friday User",
+        fields=["name", "username", "email", "first_name", "last_name", "status"]
+    )
+
+    result = []
+    for u in users:
+        devices = frappe.get_all(
+            "Device",
+            filters={"user": u["name"]},
+            fields=["voip_token", "updated_at"]
+        )
+        tokens = frappe.get_all(
+            "Friday Token",
+            filters={"owner_user": u["name"]},
+            fields=["minutes_remaining", "status"]
+        )
+
+        result.append({
+            "id": u["name"],
+            "username": u.get("username") or u.get("email"),
+            "devices": devices,
+            "tokens": tokens
+        })
+
+    return result
 
 @frappe.whitelist(allow_guest=False)
 def supply(year: int):
