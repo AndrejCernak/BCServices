@@ -8,41 +8,37 @@
   "user",
   "voip_token",
   "apns_token",
-  "created_at",
-  "updated_at"
+  "device_type"
  ],
  "fields": [
   {
    "fieldname": "user",
    "fieldtype": "Link",
-   "label": "user",
+   "label": "User",
    "options": "Friday User"
   },
   {
    "fieldname": "voip_token",
    "fieldtype": "Data",
-   "label": "voip_token"
+   "label": "VoIP Token",
+   "unique": 1
   },
   {
    "fieldname": "apns_token",
    "fieldtype": "Data",
-   "label": "apns_token"
+   "label": "APNs Token",
+   "unique": 1
   },
   {
-   "fieldname": "created_at",
-   "fieldtype": "Datetime",
-   "label": "created_at"
-  },
-  {
-   "fieldname": "updated_at",
-   "fieldtype": "Datetime",
-   "label": "updated_at"
+   "fieldname": "device_type",
+   "fieldtype": "Data",
+   "label": "Device Type"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-12 20:38:45.526349",
+ "modified": "2025-11-01 19:20:00.000000",
  "modified_by": "Administrator",
  "module": "BCServices",
  "name": "Device",
@@ -62,7 +58,6 @@
   }
  ],
  "row_format": "Dynamic",
- "rows_threshold_for_grid_search": 20,
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": []
