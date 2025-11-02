@@ -7,49 +7,69 @@
  "field_order": [
   "caller",
   "advisor",
+  "call_id",
+  "status",
   "started_at",
   "ended_at",
   "duration",
-  "used_token"
+  "used_token",
+  "notes"
  ],
  "fields": [
   {
    "fieldname": "caller",
    "fieldtype": "Link",
-   "label": "caller",
+   "label": "Caller",
    "options": "Friday User"
   },
   {
    "fieldname": "advisor",
    "fieldtype": "Link",
-   "label": "advisor",
+   "label": "Advisor",
    "options": "Friday User"
+  },
+  {
+   "fieldname": "call_id",
+   "fieldtype": "Data",
+   "label": "Call ID"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "\nstarted\nended\nfailed\nmissed"
   },
   {
    "fieldname": "started_at",
    "fieldtype": "Datetime",
-   "label": "started_at"
+   "label": "Started At"
   },
   {
    "fieldname": "ended_at",
    "fieldtype": "Datetime",
-   "label": "ended_at"
+   "label": "Ended At"
   },
   {
    "fieldname": "duration",
    "fieldtype": "Int",
-   "label": "duration"
+   "label": "Duration (seconds)"
   },
   {
    "fieldname": "used_token",
-   "fieldtype": "Data",
-   "label": "used_token"
+   "fieldtype": "Link",
+   "label": "Used Token",
+   "options": "Friday Token"
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Small Text",
+   "label": "Notes"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-12 20:38:47.574654",
+ "modified": "2025-11-01 19:00:00.000000",
  "modified_by": "Administrator",
  "module": "BCServices",
  "name": "Call Log",
@@ -69,7 +89,6 @@
   }
  ],
  "row_format": "Dynamic",
- "rows_threshold_for_grid_search": 20,
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": []
