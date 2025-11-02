@@ -86,7 +86,7 @@ def start_call():
     """
     caller = _get_current_user_id_from_clerk()
     data = frappe.request.get_json() or {}
-	callee = data.get("advisorId") or data.get("advisor_id") or data.get("callee_id")
+    callee = data.get("advisorId") or data.get("advisor_id") or data.get("callee_id")
     caller_name = data.get("caller_name") or frappe.db.get_value("Friday User", caller, "username") or "Volajúci"
 
     if not callee:
@@ -174,4 +174,3 @@ def balance(user_id=None):
     )
     total = sum([t.minutes_remaining for t in tokens]) if tokens else 0
     return {"success": True, "total_minutes": total, "tokens": tokens}
-
