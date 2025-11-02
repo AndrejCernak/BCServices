@@ -37,7 +37,7 @@ def verify_clerk_token(token: str):
     import requests
     try:
         res = requests.post(
-            "https://api.clerk.dev/v1/tokens/verify",
+    		"https://notable-sawfly-17.clerk.accounts.dev/v1/tokens/verify",
             headers={
                 "Authorization": f"Bearer {clerk_key}",
                 "Content-Type": "application/json"
@@ -162,3 +162,4 @@ def deduct_minutes_from_user(user_id: str, minutes: int = 1):
     frappe.db.commit()
     log_info(f"Deducted {minutes} minutes from token {tok.name} ({user_id})")
     return tok.name
+
