@@ -53,8 +53,7 @@
   {
    "fieldname": "created_at",
    "fieldtype": "Datetime",
-   "label": "Created At",
-   "default": "Now()"
+   "label": "Created At"
   },
   {
    "fieldname": "updated_at",
