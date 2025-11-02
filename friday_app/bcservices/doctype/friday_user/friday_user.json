@@ -11,44 +11,43 @@
   "clerk_id",
   "status",
   "email",
-  "username",
-  "created_at",
-  "updated_at",
-  "password"
+  "username"
  ],
  "fields": [
   {
    "fieldname": "role",
-   "fieldtype": "Data",
-   "label": "role"
+   "fieldtype": "Select",
+   "label": "Role",
+   "options": "admin\nclient"
   },
   {
    "fieldname": "first_name",
    "fieldtype": "Data",
-   "label": "first_name"
+   "label": "First Name"
   },
   {
    "fieldname": "last_name",
    "fieldtype": "Data",
-   "label": "last_name"
+   "label": "Last Name"
   },
   {
    "fieldname": "clerk_id",
    "fieldtype": "Data",
-   "label": "clerk_id",
-   "read_only": 1
+   "label": "Clerk ID",
+   "read_only": 1,
+   "unique": 1
   },
   {
    "fieldname": "status",
    "fieldtype": "Select",
-   "label": "status",
+   "label": "Status",
    "options": "active\ninactive\nbanned"
   },
   {
    "fieldname": "email",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "email",
+   "label": "Email",
    "options": "Email",
    "reqd": 1,
    "unique": 1
@@ -56,30 +55,13 @@
   {
    "fieldname": "username",
    "fieldtype": "Data",
-   "label": "username"
-  },
-  {
-   "fieldname": "created_at",
-   "fieldtype": "Datetime",
-   "label": "created_at",
-   "read_only": 1
-  },
-  {
-   "fieldname": "updated_at",
-   "fieldtype": "Datetime",
-   "label": "updated_at",
-   "read_only": 1
-  },
-  {
-   "fieldname": "password",
-   "fieldtype": "Password",
-   "label": "password"
+   "label": "Username"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-16 00:02:09.997426",
+ "modified": "2025-11-01 19:40:00.000000",
  "modified_by": "Administrator",
  "module": "BCServices",
  "name": "Friday User",
@@ -99,7 +81,6 @@
   }
  ],
  "row_format": "Dynamic",
- "rows_threshold_for_grid_search": 20,
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": []
