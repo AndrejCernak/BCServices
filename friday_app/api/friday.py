@@ -42,13 +42,15 @@ def admin_clients():
     """
     Admin → potrebuje vidieť klientov + ich zariadenia + minúty.
     """
-    user_id = _get_current_user_id_from_clerk()
-    role = frappe.db.get_value("Friday User", user_id, "role")
-    if role != "admin":
-        frappe.throw("Access denied: admin only", frappe.PermissionError)
+    # TEMP: vypneme admin check pre test
+    # user_id = _get_current_user_id_from_clerk()
+    # role = frappe.db.get_value("Friday User", user_id, "role")
+    # if role != "admin":
+    #     frappe.throw("Access denied: admin only", frappe.PermissionError)
 
     users = frappe.get_all(
         "Friday User",
+        filters={"role": "client", "status": "active"},
         fields=["name as id", "username", "email", "status", "role"]
     )
 
@@ -72,7 +74,6 @@ def admin_clients():
         })
 
     return {"success": True, "clients": out}
-
 
 # =============== CALLS ===============
 
