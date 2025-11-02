@@ -1,183 +1,176 @@
 import frappe
-from friday_app.api.utils import (
+from frappe import _
+from frappe.utils import now
+from .utils import (
     log_info,
     log_error,
-    success_response,
-    error_response,
-    require_fields,
-    now_iso
+    now_iso,
+    send_apns_notification,
+    deduct_minutes_from_user,
+    verify_clerk_token,
 )
-from friday_app.api.auth import verify_clerk_token
-from friday_app.api.apns_push import send_voip_push
 
 
-# -----------------------------
-# 👥 Admin - Zobrazenie klientov
-# -----------------------------
+# =============== HELPERS ===============
+
+def _get_current_user_id_from_clerk():
+    auth_header = frappe.get_request_header("Authorization")
+    if not auth_header:
+        frappe.throw("Missing Authorization header", frappe.PermissionError)
+
+    jwt_token = (
+        auth_header.replace("Bearer ", "")
+        .replace("Token ", "")
+        .replace("token ", "")
+        .strip()
+    )
+    clerk_user = verify_clerk_token(jwt_token)
+    if not clerk_user:
+        frappe.throw("Invalid Clerk token", frappe.PermissionError)
+
+    clerk_id = clerk_user.get("sub") or clerk_user.get("id")
+    user_id = frappe.db.get_value("Friday User", {"clerk_id": clerk_id}, "name")
+    if not user_id:
+        frappe.throw("Friday User not found", frappe.PermissionError)
+    return user_id
+
+
+# =============== ADMIN ===============
+
 @frappe.whitelist(allow_guest=False)
 def admin_clients():
-    """Získa zoznam všetkých klientov s ich zariadeniami a tokenmi."""
-    try:
-        clients = frappe.get_all(
-            "Friday User",
-            fields=["name as id", "username"]
+    """
+    Admin → potrebuje vidieť klientov + ich zariadenia + minúty.
+    """
+    user_id = _get_current_user_id_from_clerk()
+    role = frappe.db.get_value("Friday User", user_id, "role")
+    if role != "admin":
+        frappe.throw("Access denied: admin only", frappe.PermissionError)
+
+    users = frappe.get_all(
+        "Friday User",
+        fields=["name as id", "username", "email", "status", "role"]
+    )
+
+    out = []
+    for u in users:
+        devices = frappe.get_all(
+            "Device",
+            filters={"user": u["id"]},
+            fields=["voip_token as voipToken", "apns_token as apnsToken", "modified as updatedAt"]
         )
+        tokens = frappe.get_all(
+            "Friday Token",
+            filters={"owner_user": u["id"], "status": ["in", ["active", "listed"]]},
+            fields=["minutes_remaining as minutesRemaining", "status"]
+        )
+        out.append({
+            "id": u["id"],
+            "username": u.get("username") or u.get("email"),
+            "devices": devices,
+            "tokens": tokens
+        })
 
-        for c in clients:
-            c["devices"] = frappe.get_all(
-                "Friday Device",
-                filters={"user": c["id"]},
-                fields=["voip_token as voipToken", "modified as updatedAt"]
-            )
-            c["tokens"] = frappe.get_all(
-                "Friday Token",
-                filters={"user": c["id"]},
-                fields=["minutes_remaining as minutesRemaining", "status"]
-            )
-
-        return {"message": clients}
-
-    except Exception as e:
-        log_error(str(e), "Admin Clients Error")
-        return error_response("Failed to load clients")
+    return {"success": True, "clients": out}
 
 
-# -----------------------------
-# 📱 Registrácia zariadenia
-# -----------------------------
-@frappe.whitelist(allow_guest=True)
-def register_device():
-    """
-    Uloží alebo aktualizuje VoIP token zariadenia používateľa.
-    Swift appka volá tento endpoint po prihlásení.
-    """
-    try:
-        data = frappe.request.get_json()
-        require_fields(data, ["user_id", "voip_token"])
+# =============== CALLS ===============
 
-        user_id = data["user_id"]
-        voip_token = data["voip_token"]
-
-        existing = frappe.get_all("Friday Device", filters={"user": user_id})
-        if existing:
-            frappe.db.set_value(
-                "Friday Device", existing[0].name, "voip_token", voip_token
-            )
-            frappe.db.set_value(
-                "Friday Device", existing[0].name, "modified", now_iso()
-            )
-            log_info(f"🔁 Updated VoIP token for user {user_id}")
-        else:
-            doc = frappe.get_doc({
-                "doctype": "Friday Device",
-                "user": user_id,
-                "voip_token": voip_token
-            })
-            doc.insert()
-            log_info(f"✅ Registered new device for user {user_id}")
-
-        frappe.db.commit()
-        return success_response(message="Device registered successfully")
-
-    except Exception as e:
-        log_error(str(e), "Register Device Error")
-        return error_response("Failed to register device")
-
-
-# -----------------------------
-# 📞 Spustenie hovoru
-# -----------------------------
-@frappe.whitelist(allow_guest=False)
+@frappe.whitelist(allow_guest=False, methods=["POST"])
 def start_call():
     """
-    Admin alebo klient spustí hovor.
-    - uloží záznam do Friday Call Log
-    - pošle APNs VoIP notifikáciu druhému účastníkovi
+    Spustí hovor: caller → callee.
+    - nájde device callee
+    - pošle mu APNs
+    - vytvorí Call Log
     """
-    try:
-        data = frappe.request.get_json()
-        require_fields(data, ["caller_id", "callee_id", "caller_name"])
+    caller = _get_current_user_id_from_clerk()
+    data = frappe.request.get_json() or {}
+    callee = data.get("callee_id") or data.get("advisor_id")
+    caller_name = data.get("caller_name") or frappe.db.get_value("Friday User", caller, "username") or "Volajúci"
 
-        caller_id = data["caller_id"]
-        callee_id = data["callee_id"]
-        caller_name = data["caller_name"]
+    if not callee:
+        frappe.throw("Missing callee_id")
 
-        voip = frappe.db.get_value("Friday Device", {"user": callee_id}, "voip_token")
-        if not voip:
-            return error_response("Recipient has no VoIP token")
+    device = frappe.db.get_value(
+        "Device",
+        {"user": callee},
+        ["voip_token", "apns_token"],
+        as_dict=True
+    )
+    if not device or not (device.voip_token or device.apns_token):
+        return {
+            "success": False,
+            "error": "User has no device token"
+        }
 
-        call_id = frappe.generate_hash(length=10)
-        frappe.get_doc({
-            "doctype": "Friday Call Log",
-            "name": call_id,
-            "caller": caller_id,
-            "callee": callee_id,
-            "status": "ringing",
-            "started_at": now_iso()
-        }).insert(ignore_permissions=True)
+    # vytvor call log
+    call_id = frappe.generate_hash(length=12)
+    doc = frappe.get_doc({
+        "doctype": "Call Log",
+        "caller": caller,
+        "advisor": callee,
+        "call_id": call_id,
+        "status": "started",
+        "started_at": now_iso()
+    })
+    doc.insert(ignore_permissions=True)
+    frappe.db.commit()
 
-        frappe.db.commit()
-        log_info(f"📞 New call {call_id} from {caller_name} → {callee_id}")
+    # pošli push
+    send_apns_notification(
+        device_token=device.voip_token or device.apns_token,
+        title="Prichádzajúci hovor",
+        body=f"Volá ti {caller_name}",
+        extra={"call_id": call_id, "caller_id": caller}
+    )
 
-        # posielame push notifikáciu
-        frappe.enqueue(
-            "friday_app.api.apns_push.send_voip_push",
-            voip_token=voip,
-            caller_name=caller_name
-        )
-
-        return success_response(
-            data={"callId": call_id},
-            message="Call started successfully"
-        )
-
-    except Exception as e:
-        log_error(str(e), "Start Call Error")
-        return error_response("Failed to start call")
+    log_info(f"Call {call_id} from {caller} → {callee}")
+    return {"success": True, "callId": call_id}
 
 
-# -----------------------------
-# 🚪 Ukončenie hovoru
-# -----------------------------
-@frappe.whitelist(allow_guest=False)
+@frappe.whitelist(allow_guest=False, methods=["POST"])
 def end_call():
-    """Označí hovor ako ukončený v databáze."""
-    try:
-        data = frappe.request.get_json()
-        require_fields(data, ["call_id"])
+    """
+    Klient alebo admin ukončí hovor.
+    - označí Call Log ako ended
+    - odpočíta minúty
+    """
+    user_id = _get_current_user_id_from_clerk()
+    data = frappe.request.get_json() or {}
+    call_id = data.get("call_id")
+    duration = int(data.get("duration") or 1)
 
-        call_id = data["call_id"]
-        if frappe.db.exists("Friday Call Log", call_id):
-            frappe.db.set_value("Friday Call Log", call_id, "status", "ended")
-            frappe.db.set_value("Friday Call Log", call_id, "ended_at", now_iso())
-            frappe.db.commit()
-            log_info(f"🔚 Call {call_id} marked as ended")
-            return success_response(message="Call ended")
-        else:
-            return error_response("Call not found", status_code=404)
+    if not call_id:
+        frappe.throw("Missing call_id")
 
-    except Exception as e:
-        log_error(str(e), "End Call Error")
-        return error_response("Failed to end call")
+    if frappe.db.exists("Call Log", call_id):
+        frappe.db.set_value("Call Log", call_id, {
+            "ended_at": now_iso(),
+            "status": "ended",
+            "duration": duration
+        })
+        # odpočítaj minúty volajúcemu
+        used_token = deduct_minutes_from_user(user_id, minutes=duration)
+        if used_token:
+            frappe.db.set_value("Call Log", call_id, "used_token", used_token)
+        frappe.db.commit()
+        log_info(f"Call {call_id} ended, duration {duration}")
+        return {"success": True, "duration": duration}
+    else:
+        return {"success": False, "error": "Call not found"}
 
 
-# -----------------------------
-# 🔐 Overenie tokenu
-# -----------------------------
-@frappe.whitelist(allow_guest=True)
-def verify_token():
-    """Overí Clerk JWT token (volané z appky)."""
-    try:
-        token = frappe.get_request_header("Authorization")
-        if not token:
-            return error_response("Missing Authorization header", 401)
+# =============== USER BALANCE ===============
 
-        valid, user_id = verify_clerk_token(token.replace("Bearer ", "").replace("token ", ""))
-        if not valid:
-            return error_response("Invalid token", 403)
-
-        return success_response({"user_id": user_id}, "Token valid")
-
-    except Exception as e:
-        log_error(str(e), "Verify Token Error")
-        return error_response("Token verification failed")
+@frappe.whitelist(allow_guest=False)
+def balance():
+    """Vracia minúty prihláseného usera."""
+    user_id = _get_current_user_id_from_clerk()
+    tokens = frappe.get_all(
+        "Friday Token",
+        filters={"owner_user": user_id, "status": "active"},
+        fields=["name", "minutes_remaining", "issued_year"]
+    )
+    total = sum([t.minutes_remaining for t in tokens]) if tokens else 0
+    return {"success": True, "total_minutes": total, "tokens": tokens}
