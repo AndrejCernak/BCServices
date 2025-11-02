@@ -37,7 +37,7 @@ def _get_current_user_id_from_clerk():
 
 # =============== ADMIN ===============
 
-@frappe.whitelist(allow_guest=False)
+@frappe.whitelist(allow_guest=True)
 def admin_clients():
     """
     Admin → potrebuje vidieť klientov + ich zariadenia + minúty.
