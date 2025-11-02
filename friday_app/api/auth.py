@@ -153,3 +153,9 @@ def me():
         as_dict=True
     )
     return {"success": True, "user": user}
+
+@frappe.whitelist(allow_guest=False)
+def debug_jwt():
+    auth_header = frappe.get_request_header("Authorization")
+    return {"Authorization": auth_header}
+
